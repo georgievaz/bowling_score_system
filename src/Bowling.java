@@ -1,3 +1,5 @@
+package bowling_scoring_system;
+
 import java.util.Scanner;
 
 public class Bowling {
