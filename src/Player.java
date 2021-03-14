@@ -73,9 +73,17 @@ public class Player {
     }
 
     public void calculateFrame(int i){
+    	
         if(i == 0)score = 0;
-        else score = frames[i - 1];
-
+        else {
+        	score = frames[i - 1];
+        	
+	        //add bonus points for strike/spare 
+	        if(balls[0][i-1] == 10 || (balls[0][i-1] + balls[1][i-1]) == 10) {
+	        	calculateFrame(i - 1); 
+	        }    
+        }        
+	
         if(balls[0][i] == 10 && i != 10){
             // handles two consecutive strikes
             if(balls[0][i+1] == 10){
@@ -89,6 +97,7 @@ public class Player {
         }else {
             frames[i] = score + balls[0][i] + balls[1][i];
         }        
+        
     }
     public void printScore(){
          
