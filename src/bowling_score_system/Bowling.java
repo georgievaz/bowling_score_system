@@ -7,6 +7,7 @@ public class Bowling {
 
     public static void main (String [] args) {
         Scanner scan = new Scanner(System.in);
+        String answer;
        
        loop: do{
             Game game = new Game(scan);
@@ -14,7 +15,8 @@ public class Bowling {
             game.start();
 
             System.out.println("\nStart another game? (y/n)");
-            String answer = scan.nextLine();
+            scan.nextLine();
+            answer = scan.nextLine();
             switch (answer){
                 case "y": break; //restart do/while with another game
                 case "n": break loop; //escape do/while and close scanner
