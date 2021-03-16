@@ -3,6 +3,7 @@ package bowling_score_system;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import static bowling_score_system.Player.isNotLastFrame;
 
 public class Game {
     public List<Player> players = new ArrayList<>();
@@ -49,21 +50,8 @@ public class Game {
 
     public void frame(int frame, Scanner scan){
         players.forEach(player -> {
-           player.balls[0][frame - 1] = player.throwBall(1, frame, scan);
-           // case for extra toss after the 10th frame
-           if(player.ball == 10 && frame == 10){
-                int[] extra = player.throwExtra(2, "X", scan);
-                player.balls[0][10] = extra[0];
-                player.balls[1][10] = extra[1];
-           }else if (player.ball < 10){
-                int last = player.ball;
-                player.balls[1][frame - 1] = player.throwBall(2, frame, scan);
-                // case for extra toss after the 10th frame 
-                if((player.ball + last) == 10 && frame == 10){
-                        player.balls[0][10] = player.throwExtra(1, "X", scan)[0];
-                }
-           }
-           player.calculateFrame(frame - 1);
+            if(isNotLastFrame(frame))player.throwBall(scan);
+            else player.throwExtra(scan);
            player.printScore();
         });
     }

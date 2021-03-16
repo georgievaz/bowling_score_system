@@ -9,96 +9,125 @@ public class Player {
     int[][] balls = new int[2][11];
     int score; //the player's current score 
     String name;
-    int ball; 
+    int ball;
+    int currFrame;
+    int currBall;
 
     public Player(String name){
         this.name = name;
     }
 
-    public int throwBall(int toss, int frame, Scanner scan){
-        switch(toss){
-            case 1: 
-                    //only accepts int [0; 10] 
-                    do{
-                        System.out.println("\n Ball 1, Frame " + frame + "\n" + name + " scored: ");
-                        ball = scan.nextInt();
-                        if(ball <= 10 && ball >= 0)break;
-                        else System.out.println("Please enter a valid number (0-10)"); 
-                    }while(true); 
-                    return ball;
-            case 2: int last = ball;
-                    //only accepts int [0; 10] && the sum of the last 2 balls should be <= 10
-                    do{
-                        System.out.println("\n Ball 2, Frame " + frame + "\n" + name + " scored:");
-                        ball = scan.nextInt();
-                        if(ball <= 10 && ball >= 0 && (ball + last) <= 10)break;
-                        else System.out.println("Please enter a valid number (0-10)"); 
-                    }while(true);
-                    return ball;
-            default: return 0;
+    public void setBall(int toss){
+        if(currBall == 0) {
+            balls[currBall][currFrame] = toss;
+            if(isStrike(currFrame)){
+                calculateFrame(currFrame);
+                currFrame += 1;
+            }
+            else currBall += 1;
         }
-    }
+        else{
+            balls[currBall][currFrame] = toss;
+            calculateFrame(currFrame);
 
-    public int[] throwExtra(int toss, String frame, Scanner scan ) {
-        switch(toss){
-            case 1: do{
-                        System.out.println("Extra throw, Frame " + frame + "\n" + name + " scored: ");
-                        ball = scan.nextInt();
-                        if(ball <= 10 && ball >= 0)break;
-                    else System.out.println("Please enter a valid number (0-10)"); 
-                    }while(true);
-
-                    return new int[] {ball, 0};
-            case 2: do{
-                        System.out.println("Extra throw 1/2, Frame " + frame + "\n" + name + " scored: ");
-                        ball = scan.nextInt();
-                        if(ball <= 10 && ball >= 0)break;
-                    else System.out.println("Please enter a valid number (0-10)"); 
-                    }while(true);
-
-                    int last = ball; 
-                    do{
-                        System.out.println("Extra throw 2/2, Frame " + frame + "\n" + name + " scored: ");
-                        ball = scan.nextInt();
-                        if(last == 10 && ball <= 10 && ball >= 0)break;
-                        else if(ball <= 10 && ball >= 0 && (ball + last) <= 10)break;
-                        else System.out.println("Please enter a valid number (0-10)"); 
-                    }while(true);
-
-                    return new int[]{last, ball};
-            
-            default: return new int[2];
+            currBall -= 1;
+            currFrame += 1;
 
         }
     }
 
-    public void calculateFrame(int i){
-    	
-        if(i == 0)score = 0;
+    public boolean isValid(int ball){
+        if(currBall == 0) return(ball <= 10 && ball >= 0);
         else {
-        	score = frames[i - 1];
-        	
+            if(isNotLastFrame(currFrame)){
+                int last = balls[0][currFrame];
+                return(ball + last <= 10);
+            }else return(ball <= 10 && ball >= 0); //allow 2 strikes in the extra frame
+        }
+    }
+
+
+    private boolean isStrike(int frame) {
+
+        return (balls[0][frame] == 10);
+
+    }
+    private boolean isSpare(int frame) {
+
+        return ((balls[0][frame] + balls[1][frame]) == 10);
+
+    }
+
+
+    public static boolean isNotLastFrame(int frame) {
+        return frame != 10;
+    }
+
+    public void throwBall(Scanner scan){
+            //only accepts int [0; 10] && the sum of the last 2 balls should be <= 10
+            for(int i = 0; i < 2; i++){
+                do{
+                    System.out.println("\n Ball" + (currBall+1) + ", Frame " + (currFrame + 1) + "\n" + name + " scored:");
+                    ball = scan.nextInt();
+                    if(isValid(ball))break;
+                    else System.out.println("Please enter a valid number (0-10)");
+                }while(true);
+                setBall(ball);
+            }
+    }
+
+    public void throwExtra(Scanner scan ) {
+        if(isStrike(currBall)){
+            for(int i = 0; i < 2; i++){
+                do{
+                    System.out.println("Extra throw" + (i+1) +"/2, Frame " + currFrame + "\n" + name + " scored: ");
+                    ball = scan.nextInt();
+                    if(isValid(ball))break;
+                    else System.out.println("Please enter a valid number (0-10)");
+                }while(true);
+                setBall(ball);
+            }
+
+        }else {
+            do{
+                System.out.println("Extra throw, Frame " + currFrame + "\n" + name + " scored: ");
+                ball = scan.nextInt();
+                if(isValid(ball))break;
+                else System.out.println("Please enter a valid number (0-10)");
+            }while(true);
+            setBall(ball);
+        }
+    }
+
+    public void calculateFrame(int frame){
+    	
+        if(frame == 0)score = 0;
+        else {
+
 	        //add bonus points for strike/spare 
-	        if(balls[0][i-1] == 10 || (balls[0][i-1] + balls[1][i-1]) == 10) {
-	        	calculateFrame(i - 1); 
-	        }    
+	        if(isStrike(frame-1) || isSpare(frame-1) ){
+	        	calculateFrame(frame - 1);
+	        }
+            score = frames[frame - 1];
         }        
 	
-        if(balls[0][i] == 10 && i != 10){
+        if(isStrike(frame) && isNotLastFrame(frame)){
             // handles two consecutive strikes
-            if(balls[0][i+1] == 10){
-                frames[i] = score + 10 + balls[0][i+1] + balls[0][i+2];
+            if(isStrike(frame + 1) && frame < 9){
+                frames[frame] = score + 10 + balls[0][frame+1] + balls[0][frame+2];
             }else{
-                frames[i] = score + 10 + balls[0][i+1] + balls[1][i+1];
+                frames[frame] = score + 10 + balls[0][frame+1] + balls[1][frame+1];
             }       
-        }else if((balls[0][i] + balls[1][i]) == 10 && i != 10){
-            frames[i] = score + 10 + balls[0][i+1]; 
+        }else if(isSpare(frame) && isNotLastFrame(frame)){
+            frames[frame] = score + 10 + balls[0][frame+1];
             
         }else {
-            frames[i] = score + balls[0][i] + balls[1][i];
+            frames[frame] = score + balls[0][frame] + balls[1][frame];
         }        
         
     }
+
+
     public void printScore(){
          
         System.out.println();
